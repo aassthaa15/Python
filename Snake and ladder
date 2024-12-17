@@ -1,1 +1,144 @@
+import pygame
+import random
+import sys
 
+# Initialize Pygame
+pygame.init()
+
+# Screen settings
+WIDTH, HEIGHT = 600, 600
+CELL_SIZE = WIDTH // 10
+FPS = 30
+
+# Colors
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+BLUE = (0, 0, 255)
+GREEN = (0, 255, 0)
+YELLOW = (255, 255, 0)
+BOARD_COLOR_1 = (245, 222, 179)
+BOARD_COLOR_2 = (222, 184, 135)
+
+# Snake and Ladder positions
+SNAKES = {17: 7, 54: 34, 62: 19, 98: 79}
+LADDERS = {3: 38, 24: 33, 42: 93, 72: 84}
+
+# Initialize Pygame screen and clock
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Snakes and Ladders - Pygame")
+clock = pygame.time.Clock()
+
+# Dice Roll Function
+def roll_dice():
+    return random.randint(1, 6)
+
+# Get Row and Column from position
+def get_row_col(pos):
+    row = (pos - 1) // 10
+    col = (pos - 1) % 10
+    if row % 2 == 1:
+        col = 9 - col
+    return row, col
+
+# Get pixel coordinates from position
+def get_coordinates(pos):
+    row, col = get_row_col(pos)
+    x = col * CELL_SIZE + CELL_SIZE // 2
+    y = (9 - row) * CELL_SIZE + CELL_SIZE // 2
+    return x, y
+
+# Draw Board
+def draw_board():
+    screen.fill(WHITE)
+    for row in range(10):
+        for col in range(10):
+            color = BOARD_COLOR_1 if (row + col) % 2 == 0 else BOARD_COLOR_2
+            pygame.draw.rect(screen, color, (col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+
+    # Draw Snakes
+    for start, end in SNAKES.items():
+        pygame.draw.line(screen, RED, get_coordinates(start), get_coordinates(end), 8)
+
+    # Draw Ladders
+    for start, end in LADDERS.items():
+        pygame.draw.line(screen, GREEN, get_coordinates(start), get_coordinates(end), 8)
+
+    # Draw Cell Numbers
+    font = pygame.font.Font(None, 20)
+    for i in range(1, 101):
+        row, col = get_row_col(i)
+        x = col * CELL_SIZE + 5
+        y = (9 - row) * CELL_SIZE + 5
+        text = font.render(str(i), True, BLACK)
+        screen.blit(text, (x, y))
+
+# Draw Players
+def draw_players(player_pos):
+    for i, pos in enumerate(player_pos):
+        color = BLUE if i == 0 else RED
+        x, y = get_coordinates(pos)
+        pygame.draw.circle(screen, color, (x, y), CELL_SIZE // 6)
+
+# Main Game Loop
+def main():
+    running = True
+    player_pos = [1, 1]
+    turn = 0
+    winner = None
+    dice_value = 0  # Initialize dice value
+
+    # Font for displaying text
+    font = pygame.font.Font(None, 40)
+
+    # Game loop
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+            if event.type == pygame.MOUSEBUTTONDOWN and not winner:
+                dice_value = roll_dice()  # Roll dice
+                current_player = turn
+                new_pos = player_pos[current_player] + dice_value
+
+                # Ensure new position is within bounds
+                if new_pos <= 100:
+                    # Check for snakes or ladders
+                    if new_pos in SNAKES:
+                        new_pos = SNAKES[new_pos]
+                    elif new_pos in LADDERS:
+                        new_pos = LADDERS[new_pos]
+
+                    # Update player position
+                    player_pos[current_player] = new_pos
+
+                # Check for win condition
+                if player_pos[current_player] == 100:
+                    winner = current_player
+
+                # Switch turn
+                turn = 1 - turn
+
+        # Drawing section
+        draw_board()
+        draw_players(player_pos)
+
+        # Display whose turn it is or winner, and dice value
+        if winner is None:
+            turn_text = f"Player {turn + 1}'s Turn - Dice: {dice_value}"
+        else:
+            turn_text = f"Player {winner + 1} Wins!"
+
+        # Render the text
+        text = font.render(turn_text, True, YELLOW)
+        screen.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT - 50))
+
+        # Update the screen
+        pygame.display.flip()
+        clock.tick(FPS)
+
+# Run the game
+if __name__ == "__main__":
+    main()
