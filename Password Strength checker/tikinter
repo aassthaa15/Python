@@ -1,0 +1,74 @@
+import string
+import tkinter as tk
+from tkinter import messagebox
+
+
+def check_pwd():
+    password = password_entry.get()
+    if not password:  
+        messagebox.showwarning("Warning", "Please enter a password!")
+        return
+
+    strength = 0
+    lower_count = upper_count = num_count = special_count = 0
+
+    for char in list(password):
+        if char in string.ascii_lowercase:
+            lower_count += 1
+        elif char in string.ascii_uppercase:
+            upper_count += 1
+        elif char in string.digits:
+            num_count += 1
+        else:
+            special_count += 1
+
+    if lower_count >= 1:
+        strength += 1
+    if upper_count >= 1:
+        strength += 1
+    if num_count >= 1:
+        strength += 1
+    if special_count >= 1:
+        strength += 1
+
+    if strength == 1:
+        remarks = "Very weak password"
+    elif strength == 2:
+        remarks = "Weak password"
+    elif strength == 3:
+        remarks = "Good password"
+    else:
+        remarks = "Strong password"
+
+    result_label.config(
+        text=f"Password Strength: {strength}\nRemarks: {remarks}"
+    )
+
+
+root = tk.Tk()
+root.title("Password Checker")
+root.geometry("400x300")
+root.resizable(False, False)
+
+welcome_label = tk.Label(root, text="Welcome to Password Checker", font=("Arial Black", 16))
+welcome_label.pack(pady=10)
+
+password_label = tk.Label(root, text="Enter your password:", font=("Times New Roman", 12))
+password_label.pack(pady=5)
+
+password_entry = tk.Entry(root, show="*", font=("Times New Roman", 12), width=30)
+password_entry.pack(pady=5)
+
+check_button = tk.Button(root, text="Check Password", command=check_pwd, font=("Times New Roman", 12))
+check_button.pack(pady=10)
+
+result_label = tk.Label(root, text="", font=("Times New Roman", 12), fg="blue")
+result_label.pack(pady=10)
+
+exit_button = tk.Button(root, text="Exit", command=root.quit, font=("Times New Roman", 12), bg="red", fg="black")
+exit_button.pack(pady=10)
+
+root.mainloop()
+
+
+
